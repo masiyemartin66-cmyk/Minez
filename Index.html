@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Academy Predictor | Mines Hack Nexus</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', 'Orbitron', 'Poppins', system-ui, -apple-system, 'BlinkMacSystemFont', monospace;
+      user-select: none;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 20% 30%, #0a0f1e, #03060c);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    /* Glassmorphism containers */
+    .glass-panel {
+      background: rgba(10, 20, 30, 0.65);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      box-shadow: 0 20px 35px -12px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08);
+      transition: all 0.2s ease;
+    }
+
+    /* login page */
+    .login-container, .mines-container {
+      width: 100%;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+
+    .login-card {
+      padding: 2rem 1.8rem 2.2rem;
+      text-align: center;
+    }
+
+    .academy-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #a5f0ff, #3bc9db, #0e7c9e);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 2px;
+      text-shadow: 0 0 8px cyan;
+      margin-bottom: 0.5rem;
+    }
+
+    .sub {
+      color: #8aaec0;
+      font-size: 0.8rem;
+      margin-bottom: 2rem;
+      border-bottom: 1px dashed cyan;
+      display: inline-block;
+      padding-bottom: 4px;
+    }
+
+    .seed-input {
+      width: 100%;
+      background: #0f1a24;
+      border: 1.5px solid #2c5f6e;
+      border-radius: 60px;
+      padding: 14px 20px;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #eef4ff;
+      text-align: center;
+      letter-spacing: 1px;
+      transition: 0.2s;
+      margin-bottom: 20px;
+    }
+
+    .seed-input:focus {
+      outline: none;
+      border-color: #0ff;
+      box-shadow: 0 0 12px cyan;
+    }
+
+    .glow-button {
+      background: linear-gradient(95deg, #0a3142, #0b5e7a);
+      border: none;
+      padding: 12px 20px;
+      width: 100%;
+      border-radius: 60px;
+      font-weight: bold;
+      font-size: 1.2rem;
+      color: white;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 4px 12px rgba(0,255,255,0.2);
+      letter-spacing: 1px;
+    }
+
+    .glow-button:hover {
+      background: linear-gradient(95deg, #0e4b66, #1294b3);
+      transform: scale(0.98);
+      box-shadow: 0 0 15px cyan;
+    }
+
+    /* Mines page */
+    .mines-card {
+      padding: 1.2rem 1.2rem 1.8rem;
+    }
+
+    .glitch-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      text-align: center;
+      color: white;
+      text-transform: uppercase;
+      position: relative;
+      text-shadow: 0.05em 0 0 rgba(255,0,0,0.5), -0.05em -0.025em 0 rgba(0,255,0,0.5);
+      animation: glitch-shake 0.3s infinite alternate;
+      margin-bottom: 1rem;
+      word-break: keep-all;
+    }
+
+    @keyframes glitch-shake {
+      0% { transform: translate(0); text-shadow: 0.03em 0 0 red, -0.03em -0.02em 0 cyan; }
+      100% { transform: translate(-0.02em, 0.01em); text-shadow: -0.03em 0 0 lime, 0.03em 0.02em 0 magenta; }
+    }
+
+    .seed-badge {
+      background: #0e1e2a;
+      border-radius: 40px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      text-align: center;
+      display: inline-block;
+      width: auto;
+      margin: 0 auto 15px;
+      color: #7ae9ff;
+      font-family: monospace;
+      letter-spacing: 1px;
+    }
+
+    .mines-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin: 25px 0;
+      justify-items: center;
+    }
+
+    .mine-cell {
+      aspect-ratio: 1 / 1;
+      width: 100%;
+      background: #111c26;
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      transition: 0.1s linear;
+      cursor: default;
+      box-shadow: 0 0 4px rgba(0,255,255,0.3);
+      border: 1px solid #2e4b5a;
+    }
+
+    /* Safe mines animation: neon glow + diamond */
+    .safe-mine {
+      background: radial-gradient(circle at 30% 25%, #1b9e4a, #0c6b2f);
+      box-shadow: 0 0 16px #4aff9e, inset 0 0 4px #b3ffd9;
+      border: 1px solid #a0ffb0;
+      animation: pulseSafe 1.2s infinite alternate;
+      color: #ffefb9;
+    }
+
+    @keyframes pulseSafe {
+      0% { box-shadow: 0 0 5px #2eff8c; text-shadow: 0 0 2px gold; }
+      100% { box-shadow: 0 0 22px #6effb0; text-shadow: 0 0 6px gold; }
+    }
+
+    /* Unsafe mines: explosion vibe + red */
+    .unsafe-mine {
+      background: radial-gradient(ellipse at center, #c02222, #6a0e0e);
+      box-shadow: 0 0 0 2px #ff5e5e, 0 0 18px #ff3300;
+      animation: explodeFlash 0.35s cubic-bezier(0.34, 1.2, 0.8, 1) 1;
+      border: 1px solid #ff9e6e;
+      color: #fff2d0;
+    }
+
+    @keyframes explodeFlash {
+      0% { transform: scale(0.9); background: #ff6a2e; box-shadow: 0 0 0 4px orange; }
+      70% { transform: scale(1.08); background: #ff2a0a; box-shadow: 0 0 32px red; }
+      100% { transform: scale(1); background: radial-gradient(ellipse at center, #c02222, #6a0e0e); }
+    }
+
+    /* reset timer & buttons */
+    .reset-timer {
+      background: #0b1822;
+      border-radius: 50px;
+      padding: 8px;
+      text-align: center;
+      font-weight: bold;
+      color: #f0c674;
+      margin: 15px 0;
+      font-size: 0.9rem;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 15px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .safe-btn {
+      flex: 1;
+      background: #00adb5a0;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(145deg, #1d636b, #0d4750);
+      border: none;
+      padding: 12px;
+      border-radius: 50px;
+      font-weight: bold;
+      font-size: 1rem;
+      color: white;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: 0.2s;
+      box-shadow: 0 2px 8px black;
+    }
+
+    .safe-btn:hover {
+      background: #2d8b96;
+      transform: translateY(-2px);
+    }
+
+    .newseed-btn {
+      flex: 1;
+      background: #2a2f3f;
+      border: 1px solid cyan;
+      color: cyan;
+      border-radius: 50px;
+      padding: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .footer-meta {
+      font-size: 0.7rem;
+      text-align: center;
+      color: #5e8a9f;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+<div id="loginPage" class="login-container glass-panel">
+  <div class="login-card">
+    <div class="academy-title">ACADEMY PREDICTOR</div>
+    <div class="sub">⚡ MINES HACK MODULE ⚡</div>
+    <input type="text" id="seedCodeInput" class="seed-input" placeholder="● ENTER SEED CODE ●" autocomplete="off">
+    <button id="startCalcBtn" class="glow-button">✦ CALCULATE EXACT MATHEMATICS ✦</button>
+    <div class="footer-meta">AI pattern | online seed generator integration</div>
+  </div>
+</div>
+
+<div id="minesPage" class="mines-container glass-panel hidden">
+  <div class="mines-card">
+    <div class="glitch-title">MINES HACK v2.0</div>
+    <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap;">
+      <div class="seed-badge" id="activeSeedDisplay">seed: ---</div>
+      <div class="seed-badge" style="background:#001d2b;">🎲 AI SELECT: 3 SAFE 🧬</div>
+    </div>
+
+    <!-- 5x5 Mines Grid -->
+    <div class="mines-grid" id="minesGrid"></div>
+
+    <div id="timerResetArea" class="reset-timer">⏱️ AUTO RESET IN <span id="countdownSec">30</span> SECONDS → BACK TO MENU</div>
+
+    <div class="action-buttons">
+      <button id="safeMinesBtn" class="safe-btn">🛡️ SAFE MINES BUTTON 🛡️</button>
+      <button id="newSeedMenuBtn" class="newseed-btn">🔄 ENTER NEW SEED CODE</button>
+    </div>
+    <div class="footer-meta">🌟 green = safe [diamond] | 🔴 red = explosive × | AI pattern from online seed</div>
+  </div>
+</div>
+
+<script>
+  // ------------------- GLOBALS -------------------
+  let currentSeed = "";
+  let board = [];          // 5x5 flat array storing 'safe' or 'unsafe'
+  let safeIndices = [];    // 3 randomly chosen safe cells (0-24)
+  let gameActive = true;    // if false, board already revealed (but we use for reset)
+  let countdownInterval = null;
+  let resetTimerRunning = false;
+  let resetTimeoutId = null;
+
+  // DOM elements
+  const loginPage = document.getElementById('loginPage');
+  const minesPage = document.getElementById('minesPage');
+  const seedInput = document.getElementById('seedCodeInput');
+  const startBtn = document.getElementById('startCalcBtn');
+  const minesGridDiv = document.getElementById('minesGrid');
+  const activeSeedDisplay = document.getElementById('activeSeedDisplay');
+  const countdownSpan = document.getElementById('countdownSec');
+  const safeMinesBtn = document.getElementById('safeMinesBtn');
+  const newSeedMenuBtn = document.getElementById('newSeedMenuBtn');
+
+  // Helper: Deterministic "random" from seed string (simple hash -> RNG)
+  function seededRandom(seedStr, index) {
+    let hash = 0;
+    for (let i = 0; i < seedStr.length; i++) {
+      hash = ((hash << 5) - hash) + seedStr.charCodeAt(i);
+      hash |= 0;
+    }
+    // mix with index for diversified values
+    let val = (hash + index * 73129) & 0x7fffffff;
+    val = (val * 9301 + 49297) % 233280;  // simple LCG style
+    return val / 233280;
+  }
+
+  // AI pattern: generate 3 random SAFE mines using set method (unique indexes)
+  function generateSafeMinesFromSeed(seed, totalCells = 25, safeCount = 3) {
+    // Use deterministic seed to pick 3 distinct safe positions
+    const positions = Array.from({ length: totalCells }, (_, i) => i);
+    // Fisher-Yates using seeded random for reproducibility across same seed
+    for (let i = positions.length - 1; i > 0; i--) {
+      const randVal = seededRandom(seed, i);
+      const j = Math.floor(randVal * (i + 1));
+      [positions[i], positions[j]] = [positions[j], positions[i]];
+    }
+    // first 'safeCount' elements are safe mines
+    const selectedSafe = positions.slice(0, safeCount);
+    selectedSafe.sort((a,b)=>a-b);
+    return selectedSafe;
+  }
+
+  // Build board: safeIndices array => safe; others => unsafe
+  function buildBoardFromSafeList(safeList) {
+    const newBoard = Array(25).fill('unsafe');
+    for (let idx of safeList) {
+      newBoard[idx] = 'safe';
+    }
+    return newBoard;
+  }
+
+  // Render grid with icons, animations, marks: diamond (♦) for safe, × for unsafe
+  function renderBoard(boardState, safeList) {
+    minesGridDiv.innerHTML = "";
+    for (let i = 0; i < 25; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'mine-cell';
+      const isSafe = (boardState[i] === 'safe');
+      if (isSafe) {
+        cell.classList.add('safe-mine');
+        cell.innerHTML = '💎';   // Diamond mark for safe mines
+      } else {
+        cell.classList.add('unsafe-mine');
+        cell.innerHTML = '❌';   // × mark for unsafe mines
+      }
+      minesGridDiv.appendChild(cell);
+    }
+  }
+
+  // trigger explosion animation effect again? we already added classes during render
+  // but we also want to re-trigger any existing animation? fine, we'll reset class
+  function animateMinesWithCurrentBoard() {
+    const cells = document.querySelectorAll('.mine-cell');
+    for (let i = 0; i < cells.length; i++) {
+      const cell = cells[i];
+      // remove and force reflow to restart animation? for unsafe we need boom effect
+      if (board[i] === 'unsafe') {
+        cell.classList.remove('unsafe-mine');
+        void cell.offsetWidth; // reflow
+        cell.classList.add('unsafe-mine');
+      } else if (board[i] === 'safe') {
+        cell.classList.remove('safe-mine');
+        void cell.offsetWidth;
+        cell.classList.add('safe-mine');
+      }
+    }
+  }
+
+  // Stop any existing timer & clear reset callback
+  function stopResetTimer() {
+    if (countdownInterval) {
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+    }
+    if (resetTimeoutId) {
+      clearTimeout(resetTimeoutId);
+      resetTimeoutId = null;
+    }
+    resetTimerRunning = false;
+  }
+
+  // Start 30sec auto reset back to menu (login page)
+  function startAutoResetTimer() {
+    stopResetTimer();
+    let secondsLeft = 30;
+    countdownSpan.innerText = secondsLeft;
+    resetTimerRunning = true;
+
+    countdownInterval = setInterval(() => {
+      if (!resetTimerRunning) {
+        clearInterval(countdownInterval);
+        return;
+      }
+      secondsLeft--;
+      countdownSpan.innerText = secondsLeft >= 0 ? secondsLeft : 0;
+      if (secondsLeft <= 0) {
+        // TIME'S UP -> back to menu
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+        resetToLoginMenu("⏰ Auto reset: 30 seconds elapsed. Enter new seed code.");
+      }
+    }, 1000);
+
+    resetTimeoutId = setTimeout(() => {
+      // additional guard
+      if (resetTimerRunning) {
+        resetToLoginMenu("Auto reset triggered.");
+      }
+    }, 30000);
+  }
+
+  // Reset back to login page, preserve message?
+  function resetToLoginMenu(reasonMsg) {
+    if (!loginPage.classList.contains('hidden')) return; // already login
+    stopResetTimer();
+    // hide mines page, show login page
+    minesPage.classList.add('hidden');
+    loginPage.classList.remove('hidden');
+    // optionally clear any seed remnants
+    if (reasonMsg) console.log("[AutoReset]", reasonMsg);
+    // also reset gameActive flag
+    gameActive = false;
+    // reset seed input placeholder maybe
+    seedInput.value = "";
+    seedInput.placeholder = "● ENTER NEW SEED CODE ●";
+    // tiny alert style? but non-intrusive, maybe show toast? we just update seed display doesn't matter
+    activeSeedDisplay.innerText = "seed: ---";
+  }
+
+  // Initialize mines page with given seed (calculates safe mines and renders board)
+  function initializeMinesWithSeed(seed) {
+    // Step: generate AI selection of 3 random safe mines using SET METHOD (unique set)
+    const safeSet = generateSafeMinesFromSeed(seed, 25, 3);
+    // safeSet is array of indices
+    safeIndices = [...safeSet];
+    // Build board array
+    board = buildBoardFromSafeList(safeIndices);
+    // render fully with marks diamond and X
+    renderBoard(board, safeIndices);
+    // trigger extra glow pulse animation
+    animateMinesWithCurrentBoard();
+    // store active seed display
+    activeSeedDisplay.innerText = `🎲 seed: ${seed.substring(0, 12)}${seed.length > 12 ? '..' : ''}`;
+    gameActive = true;
+    // start 30s countdown auto reset
+    startAutoResetTimer();
+  }
+
+  // "Safe Mines Button": restyle and re-emphasize safe mines? requested: "safe mines button: styled with aref background and white text"
+  // But also we interpret as: clicking it re-highlights safe cells or shows prediction again (but original board already shows)
+  // According to spec: show safe mines button, with aref background (maybe gradient/glass) white text. We'll make it pop a toast + re-animate safe mines with diamond pulse.
+  function onSafeMinesAction() {
+    if (!gameActive) {
+      // if board is stale but still visible, re-trigger anyway? just flash
+    }
+    // re-emphasize safe mines: flash all safe cells with extra glow + show alert/info message
+    const cells = document.querySelectorAll('.mine-cell');
+    for (let i = 0; i < cells.length; i++) {
+      if (board[i] === 'safe') {
+        const cell = cells[i];
+        cell.style.transform = "scale(1.02)";
+        cell.style.transition = "0.1s";
+        setTimeout(() => { if(cell) cell.style.transform = ""; }, 200);
+        // add additional neon ring
+        cell.style.boxShadow = "0 0 20px 4px #9effb0";
+        setTimeout(() => { if(cell) cell.style.boxShadow = ""; }, 400);
+      }
+    }
+    // Optional: provide console or small visual feedback
+    const msgDiv = document.createElement('div');
+    msgDiv.innerText = "✨ AI confirms 3 safe mines (💎 positions) ✨";
+    msgDiv.style.position = "fixed";
+    msgDiv.style.bottom = "20px";
+    msgDiv.style.left = "20px";
+    msgDiv.style.backgroundColor = "#0f212ecc";
+    msgDiv.style.backdropFilter = "blur(8px)";
+    msgDiv.style.padding = "8px 15px";
+    msgDiv.style.borderRadius = "40px";
+    msgDiv.style.color = "#adffd9";
+    msgDiv.style.fontWeight = "bold";
+    msgDiv.style.zIndex = "999";
+    msgDiv.style.border = "1px solid cyan";
+    document.body.appendChild(msgDiv);
+    setTimeout(() => msgDiv.remove(), 1800);
+  }
+
+  // New seed code: go back to login page without auto reset timer killing
+  function backToNewSeed() {
+    if (!loginPage.classList.contains('hidden')) return;
+    stopResetTimer();
+    // clear flag
+    minesPage.classList.add('hidden');
+    loginPage.classList.remove('hidden');
+    seedInput.value = "";
+    seedInput.focus();
+    gameActive = false;
+    // additional cleanup
+    if (resetTimeoutId) clearTimeout(resetTimeoutId);
+    if (countdownInterval) clearInterval(countdownInterval);
+  }
+
+  // Start Calculation (from login page): validate seed and go to mines page
+  function onCalculateExact() {
+    let rawSeed = seedInput.value.trim();
+    if (rawSeed === "") {
+      // fallback: show alert but also generate demo seed?
+      alert("Please enter a valid seed code (any text/number).\nExample: 'X9k-3m2p'");
+      return;
+    }
+    // set current seed
+    currentSeed = rawSeed;
+    // hide login, show mines page
+    loginPage.classList.add('hidden');
+    minesPage.classList.remove('hidden');
+    // build everything with AI pattern (3 safe mines set method) using seed
+    initializeMinesWithSeed(currentSeed);
+  }
+
+  // EVENT LISTENERS
+  startBtn.addEventListener('click', onCalculateExact);
+  safeMinesBtn.addEventListener('click', onSafeMinesAction);
+  newSeedMenuBtn.addEventListener('click', backToNewSeed);
+  
+  // optional: pressing Enter in seed input triggers start
+  seedInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      onCalculateExact();
+    }
+  });
+
+  // For safety, clear interval on page reload but fine
+  window.addEventListener('beforeunload', () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+    if (resetTimeoutId) clearTimeout(resetTimeoutId);
+  });
+
+  // small interactive: if user clicks on mines ? keep static no extra reveal because everything is already visible
+  // According to specs: green mines with glow+diamond, red with explosion mark × — already rendered after init.
+  // also provide "auto open page two" from login after seed+click. Done.
+  // Additional, we must show exactly "AI prediction from online seed code seed generate more platform auto connected to pattern: AI select:3 random safe mines using set method" => satisfied.
+  // Also safe mines animation: green neon + diamond. unsafe: explosion animation with × mark. Already safe-mine class includes neon glow, unsafe has explosion flash on render + cross.
+  // Additionally, auto reset 30s and show 'enter new seed code' button. new seed button goes back.
+  // The safe mines button has styled background (aref style gradient) and white text. We used gradient/glass with white text.
+  
+  // ensure that any re-render after reset won't have memory leaks. Completed.
+  // Provide deterministic pattern based on seed, the set method picks 3 unique safe positions.
+  // Final check: The "AI select 3 random safe mines using set method" output is clearly consistent via seeded shuffle.
+
+  // additional improvement: whenever reset to login, we stop all timers.
+  // Edge case: if reset triggered while countdown but also pressing new seed early -> works.
+  // Also we must display that "AI SELECT: 3 SAFE" badge appears. always shown
+</script>
+</body>
+</html>
